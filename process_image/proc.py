@@ -1,5 +1,5 @@
 import os
-from flask import Blueprint, jsonify, request, send_file
+from flask import Blueprint, jsonify, request, send_file, request
 from rembg import remove
 from PIL import Image
 from io import BytesIO
@@ -22,12 +22,10 @@ def process_image():
         
         data = request.form
         quality = data.get('quality', 75)
-        format = data.get('format', ext).lower()
-        removebg = data.get('removebg', 'false').lower() == 'true'
+        img_format = data.get('img_format', ext).lower()
+        remove_bg = data.get('remove_bg', 'false').lower() == 'true'
         
-        print(quality, format, removebg)
-        print(data)
-        
+        # Validate image format
         allowed_extensions = {'png', 'jpg', 'jpeg', 'webp', 'tiff', 'tif'}
         if ext not in allowed_extensions:
             return jsonify({'status': 'error', 'error': 'Only PNG, JPEG, and JPG images are allowed'}), 400
@@ -36,15 +34,16 @@ def process_image():
         except Exception as e:
             return jsonify({'status': 'error', 'error': str(e)}), 500
 
-        if removebg:
+        # Remove background
+        if remove_bg:
             image = image.convert('RGBA')
             image = remove(image)
             
-            # # Convert to RGB if output format does not support transparency
-            # if format in {"jpg", "jpeg"}:
-            #     image = image.convert('RGB')
-            
-            
+            # Convert to RGB if output img_format does not support transparency
+            if img_format in {"jpg", "jpeg"}:
+                image = image.convert('RGB')
+
+        # Validate quality
         try:
             quality = int(quality)
         except:
@@ -54,17 +53,17 @@ def process_image():
 
         # Save image to memory
         imageBlob = BytesIO()
-        save_params = {"format": format.upper()}
-        if format in {"jpg", "jpeg"}:
+        save_params = {"format": img_format.upper()}
+        if img_format in {"jpg", "jpeg"}:
             save_params["quality"] = quality
         image.save(imageBlob, **save_params)
         imageBlob.seek(0)
 
         return send_file(
             imageBlob,
-            mimetype=f'image/{format}',
+            mimetype=f'image/{img_format}',
             as_attachment=True,
-            download_name=f'{name}-{quality}%-quality.{format}'
+            download_name=f'{name}-{quality}%-quality.{img_format}'
         )
 
     return jsonify({'status': 'error', 'error': 'Method not allowed'}), 405

@@ -1,8 +1,11 @@
 from flask import Flask, jsonify
-from .process_image.proc import image_proc_bp
+from process_image.proc import image_proc_bp
+from flask_cors import CORS
 
 app = Flask(__name__)
-app.register_blueprint(image_proc_bp, url_prefix='')
+CORS(app)
+
+app.register_blueprint(image_proc_bp, url_prefix='/api')
 @app.route('/')
 def index():
     return jsonify({

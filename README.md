@@ -50,7 +50,7 @@ This project was originally written in Django but has been migrated to Flask due
 2. Run the Flask server:
 
    ```sh
-   flask run
+   gunicorn app:app
    ```
 
 ## API Endpoints
@@ -82,6 +82,7 @@ curl -X POST http://127.0.0.1:5000/image-proc \
 - **Pillow (PIL)** - Image processing
 - **rembg** - Background removal
 - **io.BytesIO** - In-memory file handling
+- **gunicorn** - Running the flask backend
 
 ## Future Improvements
 
